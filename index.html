@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>vue3-ocr-demo</title>
+
+    <!-- =====================================================
+         ✅ 关键修复：为 PaddleJS / Emscripten / OpenCV
+         提前注入全局 Module
+         ===================================================== -->
+    <script>
+      /**
+       * Paddle.js 的 OCR 依赖（尤其是 opencv / wasm）
+       * 会在模块初始化阶段直接访问全局变量 `Module`
+       * 而 Vite / ESM 环境默认是没有这个变量的
+       */
+
+      // window.Module
+      window.Module = window.Module || {};
+
+      // 裸变量 Module（有些构建直接用 Module，不走 window）
+      // eslint-disable-next-line no-var
+      var Module = window.Module;
+
+      /**
+       * 可选：如果你之后遇到 wasm 路径问题，
+       * 可以在这里加 locateFile
+       *
+       * Module.locateFile = function (path) {
+       *   return '/models/' + path
+       * }
+       */
+    </script>
+    <!-- ===================================================== -->
+  </head>
+
+  <body>
+    <div id="app"></div>
+
+    <!-- Vite 入口 -->
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
