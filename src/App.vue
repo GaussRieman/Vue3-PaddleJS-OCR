@@ -132,7 +132,7 @@ async function onPick(e: Event) {
       }
 
     // 尝试从输出里提取纯文本（不同版本结构不一）
-    let extractedText = null;
+    let extractedText: string | null = null;
     
     // Case 1: text is a string (most common)
     if (typeof out?.text === 'string') {
@@ -159,12 +159,20 @@ async function onPick(e: Event) {
       extractedText = out.results.map((x: any) => x.text).filter(Boolean).join('\n');
     }
 
-    if (extractedText) {
-      resultText.value = extractedText;
+    const normalizedText = (extractedText || "").trim();
+    const emptyTextArray = Array.isArray(out?.text) && out.text.length === 0;
+    const emptyPointsArray = Array.isArray((out as any)?.points) && (out as any).points.length === 0;
+
+    if (normalizedText) {
+      resultText.value = normalizedText;
       success.value = "识别成功！";
     } else {
-      resultText.value = "已返回结果，但无法自动提取 text 字段；请查看 raw JSON。";
-      error.value = "文本提取格式异常，请查看原始数据。";
+      const noTextMessage = emptyTextArray && emptyPointsArray
+        ? "未检测到文本内容。"
+        : "已返回结果，但无法自动提取 text 字段；请查看 raw JSON。";
+      resultText.value = noTextMessage;
+      error.value = emptyTextArray && emptyPointsArray ? null : "文本提取格式异常，请查看原始数据。";
+      success.value = emptyTextArray && emptyPointsArray ? "识别完成，但未检测到文本。" : null;
     }
   } catch (err: any) {
     const errorMsg = `识别失败：${err?.message ?? String(err)}`;
